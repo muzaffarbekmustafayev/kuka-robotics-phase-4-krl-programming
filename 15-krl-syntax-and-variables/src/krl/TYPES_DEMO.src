@@ -1,0 +1,40 @@
+&ACCESS RVP
+&REL 1
+&COMMENT Demonstration of KRL Data Types and Geometric Operator
+DEF TYPES_DEMO( )
+  ; =========================================================
+  ; Lesson 15: KRL Data Types, Declarations & ':' Operator
+  ; Robot: KUKA KR 6 R900-2 (KR C4)
+  ; =========================================================
+
+  ; Local primitive declarations
+  INT nCycleCounter
+  REAL rCurrentSpeed
+  BOOL bGripperClamped
+  FRAME fOffset
+
+  ; INI
+  BAS (#INITMOV, 0)
+  $VEL.CP = 0.5
+  $ACC.CP = 1.0
+
+  ; Initialize variables
+  nCycleCounter = 0
+  rCurrentSpeed = 0.25
+  bGripperClamped = FALSE
+  fOffset = {X 0.0, Y 0.0, Z 50.0, A 0.0, B 0.0, C 0.0}
+
+  ; Safe Home approach
+  PTP XHOME
+
+  ; Move to base target point
+  LIN P_BASE_TARGET
+
+  ; Apply Geometric Operator ':' for dynamic Cartesian offset
+  ; Target + 50 mm in Tool Z
+  LIN P_BASE_TARGET : fOffset
+
+  ; Return Home
+  PTP XHOME
+
+END

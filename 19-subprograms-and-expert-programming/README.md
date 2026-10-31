@@ -1,5 +1,5 @@
-# Subprograms, Functions & Expert KRL Architecture
-## Subprogrammalar, funksiyalar va Expert KRL dasturlash | Подпрограммы, функции и экспертное программирование KRL
+# 19-Dars: Subprogrammalar, Funksiyalar va Parametrik Palletayzer
+## Subprograms, Functions (DEFFCT) & Parametric 3D Palletizing
 
 [![Phase](https://img.shields.io/badge/Phase-kuka-robotics-phase-4-krl-programming-blue.svg)](#)
 [![Robot: KUKA KR 6 R900-2](https://img.shields.io/badge/KUKA-KR%206%20R900--2%20(AGILUS)-orange.svg)](https://www.kuka.com)
@@ -7,41 +7,56 @@
 
 ---
 
-### 🌐 Overview & Multilingual Summary
-
-#### 🇺🇿 O'zbekcha:
-Global va lokal qism-dasturlar, funksiyalar (DEFFCT), argument uzatish va modulli parametrik zavod avtomatizatsiyasi karkasini qurish.
-
-#### 🇷🇺 Русский:
-Глобальные и локальные подпрограммы, функции (DEFFCT), передача аргументов и создание модульного фреймворка автоматизации.
-
-#### 🇬🇧 English:
-Global/local subroutines, functions (DEFFCT), call-by-value/call-by-reference argument passing, and modular automation frameworks.
+### 🎯 1. Maqsad (Goal)
+KRL tilida modulli arxitektura qurish: protseduralar (`DEF`), qiymat qaytaruvchi funksiyalar (`DEFFCT`), parametr uzatish turlari (`:IN`, `:OUT`) hamda sanoat logistikasida keng qo'llaniladigan 3D parametrik palletizatsiya (matritsali taxlash) algoritmini yaratish.
 
 ---
 
-### 🗂️ Directory Structure (Mandatory Boilerplate)
-```
-19-subprograms-and-expert-programming/
-├── src/
-│   ├── krl/            # Production KRL code (.src, .dat) [All code & comments in English]
-│   └── scripts/        # Python verification scripts (.py) [All code & comments in English]
-├── sim/                # KUKA.Sim Pro layouts (.vcmx), URDF and CAD models
-├── docs/               # Theoretical diagrams, figures, and proofs
-├── CLAUDE.md           # AI developer instructions
-└── README.md           # Trilingual guide (Uzbek, Russian, English)
-```
+### 📊 2. Natija (Result)
+1. **Python Parametrik Palletayzer Engine (`parametric_palletizer.py`):**
+   - 1D tartib raqamini 3D fazoviy to'rga o'girish ($n \to (i_x, i_y, i_z)$).
+   - Pallet burchagi burilishi ($R_{pallet}(\psi)$) va xavfsiz yaqinlashish (approach) traektoriyasi.
+2. **KRL Ishlab chiqarish dasturi (`PALLET_EXPERT.src` va `PALLET_EXPERT.dat`):**
+   - `DEFFCT POS CALC_PALLET_POS(nIdx: IN)` funksiyasi orqali har bir detal uchun koordinatani dinamik generatsiya qilish.
+3. **Pytest Unit Testlari (`test_palletizer.py`):**
+   - Sig'im hisobi, to'r indeksatsiyasi va chegaradan chiqish xatosi (3/3 test o'tdi).
 
 ---
 
-### 🧮 Mathematical Foundations & Verification
-All formulas, derivations, and theorems for this lesson are detailed in [**docs/derivations.md**](./docs/derivations.md).
-Runnable Python verification scripts are provided in `src/scripts/verify_theorem.py`.
+### 🧮 3. Matematik apparat (Mathematics)
 
-To run the verification test:
+$$i_z = \lfloor n / (N_x N_y) \rfloor, \quad i_y = \lfloor (n \bmod N_x N_y) / N_x \rfloor, \quad i_x = (n \bmod N_x N_y) \bmod N_x$$
+$$\mathbf{P}(n) = \mathbf{P}_{origin} + R_{pallet} [i_x \Delta x, i_y \Delta y, i_z \Delta z]^T$$
+
+To'liq nazariya va matematik isbotlar [**docs/derivations.md**](./docs/derivations.md) da keltirilgan.
+
+---
+
+### 💻 4. Ishga tushirish va tekshirish (Execution & Verification)
+
+Python dvigatelini ishga tushirish:
 ```bash
-uv run --with numpy python src/scripts/verify_theorem.py
+uv run --with numpy python src/scripts/parametric_palletizer.py
 ```
 
+Konsol chiqishi:
+```
+=================================================================
+Lesson 19: Parametric Palletizer & KRL Expert Subprograms
+=================================================================
+
+Pallet Configuration: 3x2x2 (Total: 12 parts)
+  Part # 0 (Grid (0, 0, 0)): Place=[400.0, -150.0, 100.0] mm, Approach=[400.0, -150.0, 150.0] mm
+  Part # 5 (Grid (2, 1, 0)): Place=[495.19, -41.67, 100.0] mm, Approach=[495.19, -41.67, 150.0] mm
+  Part #11 (Grid (2, 1, 1)): Place=[495.19, -41.67, 140.0] mm, Approach=[495.19, -41.67, 190.0] mm
+```
+
+Unit testlarni bajarish:
+```bash
+uv run --with numpy --with pytest pytest src/scripts/test_palletizer.py
+```
+Natija: `3 passed in 0.11s`.
+
 ---
-🔗 **[Return to Master Syllabus / Bosh Mundarija](https://github.com/muzaffarbekmustafayev/kuka-industrial-robotics-syllabus)**
+
+🔗 **[Bosh Mundarija / Return to Master Syllabus](https://github.com/muzaffarbekmustafayev/kuka-industrial-robotics-syllabus)**

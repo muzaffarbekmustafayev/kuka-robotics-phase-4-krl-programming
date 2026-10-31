@@ -1,0 +1,16 @@
+&ACCESS RVP
+&REL 1
+&COMMENT Data list for PLC_HANDSHAKE
+DEFDAT PLC_HANDSHAKE
+  ; Fieldbus Bit Signatures
+  SIGNAL diJobID $IN[1] TO $IN[8]
+  SIGNAL diStartRequest $IN[9]
+  SIGNAL doJobEcho $OUT[1] TO $OUT[8]
+  SIGNAL doRobotReady $OUT[9]
+  SIGNAL doRobotBusy $OUT[10]
+  SIGNAL doJobDone $OUT[11]
+
+  ; Waypoints
+  DECL POS P_JOB1_ENTRY = {X 420.0, Y -150.0, Z 300.0, A 0.0, B 90.0, C 0.0}
+  DECL POS P_JOB2_ENTRY = {X 450.0, Y 150.0, Z 300.0, A 0.0, B 90.0, C 0.0}
+ENDDAT

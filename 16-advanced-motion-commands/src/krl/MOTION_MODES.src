@@ -1,0 +1,37 @@
+&ACCESS RVP
+&REL 1
+&COMMENT Advanced Motion Types: PTP, LIN, CIRC & Continuous Approximations
+DEF MOTION_MODES( )
+  ; =========================================================
+  ; Lesson 16: Industrial Motion Control & Trajectory Blending
+  ; Robot: KUKA KR 6 R900-2 (KR C4)
+  ; =========================================================
+
+  ; INI
+  BAS (#INITMOV, 0)
+  
+  ; Set standard velocity and acceleration limits
+  $VEL.CP = 0.5       ; m/s
+  $ACC.CP = 2.0       ; m/s^2
+  $APO.CDIS = 25.0    ; 25 mm continuous approximation blending radius
+  $APO.CPTP = 20      ; 20% axis approximation
+
+  ; PTP Motion to Home with Axis Blending
+  PTP XHOME C_PTP
+
+  ; PTP to intermediate staging point
+  PTP P_STAGING C_PTP
+
+  ; LIN motion with continuous approximation (no full stop at P1)
+  LIN P1 C_DIS
+
+  ; CIRC motion through Auxiliary point to Target point
+  CIRC P_AUX, P2 C_DIS
+
+  ; LIN finishing cut without approximation (exact fine stop)
+  LIN P3
+
+  ; Return to safe Home
+  PTP XHOME
+
+END

@@ -1,0 +1,64 @@
+&ACCESS RVP
+&REL 1
+&COMMENT Part Touch-Sensing via High-Speed Interrupt & RESUME
+DEF TOUCH_SENSE( )
+  ; =========================================================
+  ; Lesson 17: Event-Driven Programming & Interrupts
+  ; Robot: KUKA KR 6 R900-2 (KR C4)
+  ; Description: Searches for part with tactile sensor using INTERRUPT & BRAKE RESUME
+  ; =========================================================
+
+  ; INI
+  BAS (#INITMOV, 0)
+  $VEL.CP = 0.25   ; Search velocity (250 mm/s)
+  $ACC.CP = 1.0
+
+  ; Declare global interrupt 10 on fast digital input $IN[5]
+  GLOBAL INTERRUPT DECL 10 WHEN $IN[5]==TRUE DO PART_FOUND()
+
+  ; Move to safe pre-search position
+  PTP XHOME
+  PTP P_START_SEARCH
+
+  ; Call interruptible motion subprogram
+  SEARCH_PART_MOTION()
+
+  ; If part was found, proceed to grip and lift
+  IF bPartDetected == TRUE THEN
+    ; Record contact point
+    P_TOUCH_POINT = $POS_INT
+    ; Grip part
+    $OUT[1] = TRUE  ; Close gripper
+    WAIT SEC 0.3
+    ; Retract along Z
+    LIN P_START_SEARCH
+  ENDIF
+
+  ; Return Home
+  PTP XHOME
+
+END
+
+DEF SEARCH_PART_MOTION()
+  ; Enable interrupt specifically during search
+  INTERRUPT ON 10
+  bPartDetected = FALSE
+
+  ; Move downward towards workpiece pallet
+  LIN P_SEARCH_LIMIT
+
+  ; If this point is reached, part was not found
+  INTERRUPT OFF 10
+END
+
+DEF PART_FOUND()
+  ; Disable further triggers
+  INTERRUPT OFF 10
+  bPartDetected = TRUE
+
+  ; Immediately stop robot trajectory
+  BRAKE
+
+  ; Cancel remaining movement in SEARCH_PART_MOTION and return to main level
+  RESUME
+END

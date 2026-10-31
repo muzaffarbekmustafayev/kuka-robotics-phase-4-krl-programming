@@ -1,0 +1,69 @@
+&ACCESS RVP
+&REL 1
+&COMMENT Industrial PROFINET / Fieldbus PLC Handshake Routine
+DEF PLC_HANDSHAKE( )
+  ; =========================================================
+  ; Lesson 18: Industrial Fieldbus Handshaking & Signal Mapping
+  ; Robot: KUKA KR 6 R900-2 (KR C4)
+  ; Description: Handshakes with Line PLC via PROFINET
+  ; =========================================================
+
+  ; INI
+  BAS (#INITMOV, 0)
+  $VEL.CP = 0.5
+  $ACC.CP = 1.0
+
+  ; Signal mapping
+  ; In DAT file:
+  ; SIGNAL diJobID $IN[1] TO $IN[8]
+  ; SIGNAL doJobEcho $OUT[1] TO $OUT[8]
+
+  ; Standby at safe Home position
+  PTP XHOME
+  doRobotReady = TRUE
+  doRobotBusy = FALSE
+  doJobDone = FALSE
+
+  ; Main production synchronization loop
+  LOOP
+    ; Wait for PLC Start Request
+    WAIT FOR diStartRequest == TRUE
+
+    ; Acknowledge and lock
+    doRobotBusy = TRUE
+    doJobEcho = diJobID
+    WAIT SEC 0.05
+
+    ; Execute selected job recipe
+    SWITCH diJobID
+      CASE 1
+        EXECUTE_JOB_WELD()
+      CASE 2
+        EXECUTE_JOB_PALLET()
+      DEFAULT
+        ; Unknown job fault
+        $OUT[15] = TRUE
+    ENDSWITCH
+
+    ; Handshake completion
+    doRobotBusy = FALSE
+    doJobDone = TRUE
+
+    ; Wait for PLC to clear request
+    WAIT FOR diStartRequest == FALSE
+    doJobDone = FALSE
+  ENDLOOP
+
+END
+
+DEF EXECUTE_JOB_WELD()
+  LIN P_JOB1_ENTRY
+  WAIT SEC 0.5
+  PTP XHOME
+END
+
+DEF EXECUTE_JOB_PALLET()
+  LIN P_JOB2_ENTRY
+  WAIT SEC 0.5
+  PTP XHOME
+END

@@ -1,0 +1,79 @@
+&ACCESS RVP
+&REL 1
+&COMMENT Parametric Palletizing Expert Program with Subprograms & Functions
+DEF PALLET_EXPERT( )
+  ; =========================================================
+  ; Lesson 19: Subprograms, DEFFCT, and Parametric Palletizing
+  ; Robot: KUKA KR 6 R900-2 (KR C4)
+  ; =========================================================
+
+  INT nIndex
+  INT nTotalParts
+  POS pTargetPlace
+  POS pApproach
+
+  ; INI
+  BAS (#INITMOV, 0)
+  $VEL.CP = 0.5
+  $ACC.CP = 1.0
+
+  nTotalParts = N_COUNT_X * N_COUNT_Y * N_COUNT_Z
+
+  ; Safe Home approach
+  PTP XHOME
+
+  ; Stacking loop
+  FOR nIndex = 0 TO nTotalParts - 1
+    ; Pick up component from conveyor feeder
+    PICK_COMPONENT()
+
+    ; Calculate parametric placement target using KRL function
+    pTargetPlace = CALC_PALLET_POS(nIndex)
+    
+    ; Approach point 50mm above target
+    pApproach = pTargetPlace
+    pApproach.Z = pApproach.Z + 50.0
+
+    ; Smooth approach
+    LIN pApproach C_DIS
+    ; Precision placement
+    LIN pTargetPlace
+    WAIT SEC 0.1
+    $OUT[1] = FALSE ; Release gripper
+    WAIT SEC 0.2
+
+    ; Safe retract
+    LIN pApproach C_DIS
+  ENDFOR
+
+  ; Stacking complete: return home
+  PTP XHOME
+
+END
+
+DEF PICK_COMPONENT()
+  LIN P_PICK_APPROACH C_DIS
+  LIN P_PICK_GRIP
+  $OUT[1] = TRUE ; Grip part
+  WAIT SEC 0.2
+  LIN P_PICK_APPROACH C_DIS
+END
+
+DEFFCT POS CALC_PALLET_POS(nIdx: IN)
+  INT nIdx
+  INT ix, iy, iz, nRem, nLayerSize
+  POS pResult
+
+  nLayerSize = N_COUNT_X * N_COUNT_Y
+  iz = nIdx / nLayerSize
+  nRem = nIdx - (iz * nLayerSize)
+  iy = nRem / N_COUNT_X
+  ix = nRem - (iy * N_COUNT_X)
+
+  pResult = P_PALLET_CORNER
+  pResult.X = pResult.X + (ix * R_PITCH_X)
+  pResult.Y = pResult.Y + (iy * R_PITCH_Y)
+  pResult.Z = pResult.Z + (iz * R_PITCH_Z)
+
+  RETURN pResult
+ENDFCT
